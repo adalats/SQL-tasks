@@ -75,3 +75,112 @@ WHERE JOB_ID IN (
         )
     )
 );
+
+
+--TASK 7
+--A
+SELECT
+    FIRST_NAME,
+    LAST_NAME,
+    DEPARTMENT_ID,
+    SALARY
+FROM
+    HR.EMPLOYEES
+WHERE
+    DEPARTMENT_ID IN (
+        SELECT
+            DEPARTMENT_ID
+        FROM
+            HR.DEPARTMENTS
+        WHERE
+            DEPARTMENT_NAME = 'Finance'
+            OR DEPARTMENT_NAME = 'Accounting'
+    )
+    AND SALARY = (
+        SELECT
+            MAX(SALARY)
+        FROM
+            HR.EMPLOYEES
+        WHERE
+            DEPARTMENT_ID IN (
+                SELECT
+                    DEPARTMENT_ID
+                FROM
+                    HR.DEPARTMENTS
+                WHERE
+                    DEPARTMENT_NAME = 'Finance'
+                    OR DEPARTMENT_NAME = 'Accounting'
+            )
+    );
+
+--B
+SELECT
+    FIRST_NAME,
+    LAST_NAME,
+    DEPARTMENT_ID,
+    SALARY
+FROM
+    HR.EMPLOYEES
+WHERE
+    DEPARTMENT_ID IN (
+        SELECT
+            DEPARTMENT_ID
+        FROM
+            HR.DEPARTMENTS
+        WHERE
+            DEPARTMENT_NAME IN ( 'Finance', 'Accounting' )
+    )
+ORDER BY
+    SALARY DESC
+FETCH FIRST 1 ROW ONLY;
+
+--A EN YUKSEK MAAS ALAN BUTUN ISCILER, B EN YUKSEK MAAS ALAN 1 ISCI
+
+--TASK 8
+SELECT
+    DEPARTMENT_ID,
+    ROUND(AVG(SALARY)) AS ORTA_MAAS
+FROM
+    HR.EMPLOYEES
+GROUP BY
+    DEPARTMENT_ID
+HAVING
+    AVG(SALARY) > (
+        SELECT
+            AVG(SALARY)
+        FROM
+            HR.EMPLOYEES
+        WHERE
+            DEPARTMENT_ID = (
+                SELECT
+                    DEPARTMENT_ID
+                FROM
+                    HR.DEPARTMENTS
+                WHERE
+                    DEPARTMENT_NAME = 'IT'
+            )
+    )
+ORDER BY
+    ORTA_MAAS DESC;
+-- IT
+--HAVING
+--ORDER BY DEPARTMENT_ID
+
+--TASK 9
+SELECT
+    CITY,
+    COUNTRY_ID
+FROM
+    HR.LOCATIONS
+WHERE
+    LOCATION_ID IN (
+        SELECT
+            LOCATION_ID
+        FROM
+            HR.DEPARTMENTS
+        WHERE
+            DEPARTMENT_ID IN (SELECT DEPARTMENT_ID FROM HR.EMPLOYEES
+               GROUP BY DEPARTMENT_ID
+               HAVING COUNT(*) = (SELECT MAX(COUNT(*)) FROM HR.EMPLOYEES GROUP BY DEPARTMENT_ID))
+    )
+    ;
